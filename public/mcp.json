@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "skillforge": {
+      "url": "https://skillforge.vercel.app/api/mcp",
+      "transport": "http-json-rpc",
+      "description": "Search, score, compose and verify reusable AI agent skills",
+      "tools": ["search_skills", "get_skill", "score_skill", "compose_bundle", "verify_seal"]
+    }
+  }
+}
