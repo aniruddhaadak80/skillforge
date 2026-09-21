@@ -83,7 +83,7 @@ export default function BundleComposer({ skills }: { skills: ScoredSkill[] }) {
 
       <div className="glass h-fit rounded-2xl p-5 lg:sticky lg:top-24">
         <div className="flex items-center gap-2">
-          <PackagePlus className="size-5 text-grape" />
+          <PackagePlus className="size-5 text-ember" />
           <h2 className="font-display text-lg font-bold">Bundle report</h2>
         </div>
         {selected.length === 0 ? (

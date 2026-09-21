@@ -67,10 +67,14 @@ export async function verifyChain(
   return { ok: failures.length === 0, checked: records.length, failures };
 }
 
-/**
- * Seals an ordered list of skill payloads into a chain.
- * Returns the per-skill seal hash plus the full records for verification.
- */
+/** O(1) re-verification of one stored record: recompute from its stored prev. */
+export async function verifyStored(
+  prevFull: string,
+  payload: unknown,
+  expectedHash: string,
+): Promise<boolean> {
+  return (await sealFor(prevFull, payload)) === expectedHash;
+}
 export async function sealCatalog<T extends { id: string }>(
   items: T[],
   toPayload: (item: T) => unknown,

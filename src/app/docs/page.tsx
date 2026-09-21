@@ -114,9 +114,10 @@ export default function DocsPage() {
       <section className="mt-12">
         <h2 className="font-display text-2xl font-bold">Step 6 — Use the REST API directly</h2>
         <p className="mt-3 text-sm leading-relaxed text-mist">
-          No keys, cached hourly, offline-sealed. Health, catalog search with filters, single
-          skill with seal, raw SKILL.md for install scripts, deterministic scoring, and
-          chain verification.
+          No keys, cached hourly, offline-sealed, paginated across 10,000+ records. Health,
+          catalog search with source, license, stars and exclusion filters plus category facets,
+          single skill with seal, raw SKILL.md for install scripts, deterministic scoring, and
+          full-chain verification (10k hashes in ~0.5s).
         </p>
         <Code text={CURL_SEARCH} />
         <Code text={CURL_MCP} />

@@ -36,7 +36,7 @@ export default function Footer() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.2fr_repeat(3,1fr)]">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-neon to-grape">
+            <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-lime to-ember">
               <Anvil className="size-5 text-void" strokeWidth={2.5} />
             </span>
             <span className="font-display text-lg font-bold">SkillForge</span>

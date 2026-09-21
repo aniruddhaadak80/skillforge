@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { composeBundle, scoreSkill, searchSkills } from "@/lib/engine";
-import { getFullCatalog, getSealedCatalog, payloadOf } from "@/lib/registry";
+import { getSealedCatalog, payloadOf, verifyCatalog } from "@/lib/registry";
 import { GENESIS, sealFor } from "@/lib/seal";
 import type { SearchFilters, Skill } from "@/lib/types";
 
@@ -24,6 +24,9 @@ const TOOLS = [
         platform: { type: "string", enum: ["all", "openclaw", "claude-code", "cursor", "generic-mcp"] },
         minSafety: { type: "number" },
         sort: { type: "string", enum: ["score", "safety", "adopters", "name"] },
+        source: { type: "string", enum: ["all", "curated", "github", "npm", "mcp", "hn"] },
+        openLicense: { type: "boolean" },
+        minStars: { type: "number" },
         limit: { type: "number" },
       },
     },
@@ -74,6 +77,7 @@ function err(id: unknown, code: number, message: string): NextResponse {
 
 function toFilters(a: Record<string, unknown>): SearchFilters {
   const sort = a.sort;
+  const source = a.source;
   return {
     query: typeof a.query === "string" ? a.query : "",
     category: (a.category as SearchFilters["category"]) ?? "all",
@@ -81,17 +85,17 @@ function toFilters(a: Record<string, unknown>): SearchFilters {
     minSafety: typeof a.minSafety === "number" ? a.minSafety : 0,
     sort:
       sort === "safety" || sort === "adopters" || sort === "name" ? sort : "score",
+    source:
+      source === "curated" || source === "github" || source === "npm" || source === "mcp" || source === "hn"
+        ? source
+        : "all",
+    openLicense: a.openLicense === true,
+    minStars: typeof a.minStars === "number" ? a.minStars : 0,
   };
 }
 
-async function sealedMap(): Promise<{
-  all: Skill[];
-  byId: Map<string, Awaited<ReturnType<typeof getSealedCatalog>>["scored"][number]>;
-  head: string;
-}> {
-  const all = await getFullCatalog();
-  const { scored, head } = await getSealedCatalog(all);
-  return { all, byId: new Map(scored.map((s) => [s.id, s])), head };
+async function sealedMap(): Promise<Awaited<ReturnType<typeof getSealedCatalog>>> {
+  return getSealedCatalog();
 }
 
 export async function GET() {
@@ -145,10 +149,10 @@ export async function POST(request: Request) {
     const args = (params.arguments ?? {}) as Record<string, unknown>;
     try {
       if (name === "search_skills") {
-        const { all, byId } = await sealedMap();
+        const sealed = await sealedMap();
         const limit = Math.max(1, Math.min(25, Number(args.limit ?? 5) || 5));
-        const found = searchSkills(all, toFilters(args))
-          .map((s) => byId.get(s.id))
+        const found = searchSkills(sealed.scored, toFilters(args), sealed.scores)
+          .map((s) => sealed.byId.get(s.id))
           .filter((s) => s !== undefined)
           .slice(0, limit);
         return ok(id, {
@@ -165,8 +169,8 @@ export async function POST(request: Request) {
       }
       if (name === "score_skill") {
         if (typeof args.id === "string") {
-          const { all } = await sealedMap();
-          const found = all.find((s) => s.id === args.id);
+          const sealed = await sealedMap();
+          const found = sealed.byId.get(args.id);
           if (!found) return err(id, -32602, `Unknown skill: ${args.id}`);
           const result = scoreSkill(found);
           const seal = await sealFor(GENESIS, payloadOf(found));
@@ -196,35 +200,25 @@ export async function POST(request: Request) {
       if (name === "compose_bundle") {
         const ids = args.ids;
         if (!Array.isArray(ids)) return err(id, -32602, "compose_bundle needs {ids: string[]}");
-        const { all } = await sealedMap();
-        const bundle = composeBundle(all, ids as string[]);
+        const sealed = await sealedMap();
+        const bundle = composeBundle(sealed.scored, ids as string[]);
         bundle.seal = await sealFor(GENESIS, { bundle: bundle.mcpBundle });
         return ok(id, { content: [{ type: "text", text: JSON.stringify(bundle, null, 2) }] });
       }
       if (name === "verify_seal") {
         const ids = Array.isArray(args.ids) ? (args.ids as string[]) : undefined;
-        const all = await getFullCatalog();
-        const first = await getSealedCatalog(all);
-        const second = await getSealedCatalog(all);
-        const wanted = new Set(ids ?? first.scored.map((s) => s.id));
-        const failures: string[] = [];
-        let checked = 0;
-        for (const s of first.scored) {
-          if (!wanted.has(s.id)) continue;
-          checked++;
-          const fresh = second.scored.find((x) => x.id === s.id);
-          if (!fresh || fresh.seal !== s.seal) failures.push(s.id);
-        }
+        const result = await verifyCatalog(ids);
         return ok(id, {
           content: [
             {
               type: "text",
               text: JSON.stringify(
                 {
-                  ok: failures.length === 0,
-                  checked,
-                  failures,
-                  head: first.head,
+                  ok: result.ok,
+                  checked: result.checked,
+                  failures: result.failures,
+                  head: result.head,
+                  continuity: result.continuity,
                   algo: "SHA-384(prevSeal || canonicalJson)",
                 },
                 null,

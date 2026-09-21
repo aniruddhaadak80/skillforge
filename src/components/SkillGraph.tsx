@@ -114,6 +114,15 @@ export default function SkillGraph({ counts }: Props) {
     };
 
     let layout = build();
+    // Starfield behind the network — seeded drift, twinkle, wrap-around
+    const parts = Array.from({ length: 90 }, (_, i) => ({
+      x: ((i * 137.5) % 100) / 100,
+      y: ((i * 89.3) % 100) / 100,
+      s: 0.6 + ((i * 37) % 10) / 8,
+      v: 0.008 + ((i * 53) % 10) / 900,
+      tw: (i * 0.7) % (Math.PI * 2),
+    }));
+    const PCOLORS = ["#34d399", "#fbbf24", "#22d3ee", "#f97316", "#e11d48", "#a3e635"];
     const rebuildOnResize = () => {
       layout = build();
     };
@@ -129,6 +138,17 @@ export default function SkillGraph({ counts }: Props) {
       const px = (mouse.current.x - 0.5) * 14;
       const py = (mouse.current.y - 0.5) * 14;
       ctx.clearRect(0, 0, w, h);
+      // starfield
+      parts.forEach((p, i) => {
+        const sx2 = ((p.x + t * p.v * 0.06) % 1) * w;
+        const sy2 = (((p.y * h + Math.sin(t * 0.4 + p.tw) * 6) % h) + h) % h;
+        ctx.globalAlpha = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(t * 1.4 + p.tw));
+        ctx.fillStyle = PCOLORS[i % PCOLORS.length];
+        ctx.beginPath();
+        ctx.arc(sx2, sy2, p.s, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
       const cx = w / 2 + px;
       const cy = h / 2 + py;
 
@@ -160,7 +180,7 @@ export default function SkillGraph({ counts }: Props) {
       // Central hub
       const hubGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 34);
       hubGrad.addColorStop(0, "rgba(34,211,238,0.95)");
-      hubGrad.addColorStop(0.5, "rgba(167,139,250,0.55)");
+      hubGrad.addColorStop(0.5, "rgba(249,115,22,0.55)");
       hubGrad.addColorStop(1, "rgba(34,211,238,0)");
       ctx.fillStyle = hubGrad;
       ctx.beginPath();

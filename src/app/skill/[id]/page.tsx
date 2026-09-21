@@ -5,7 +5,7 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import InstallTabs from "@/components/InstallTabs";
 import ScoreBars from "@/components/ScoreBars";
 import { CATEGORIES, PLATFORMS } from "@/lib/types";
-import { getCatalog, getFullCatalog, getSealedCatalog } from "@/lib/registry";
+import { getCatalog, getSealedCatalog } from "@/lib/registry";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -29,16 +29,14 @@ export async function generateMetadata({
 
 export default async function SkillPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const all = await getFullCatalog();
-  const base = all.find((s) => s.id === id);
-  if (!base) notFound();
-  const { scored, head } = await getSealedCatalog(all);
-  const skill = scored.find((s) => s.id === id);
+  const sealed = await getSealedCatalog();
+  const skill = sealed.byId.get(id);
   if (!skill) notFound();
+  const head = sealed.head;
 
   const color = CATEGORIES.find((c) => c.id === skill.category)?.color ?? "#94a3b8";
   const platformLabel = (p: string) => PLATFORMS.find((x) => x.id === p)?.label ?? p;
-  const related = scored
+  const related = sealed.scored
     .filter((s) => s.id !== id && s.category === skill.category)
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);

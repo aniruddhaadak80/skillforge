@@ -1,11 +1,19 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck, Star } from "lucide-react";
 import type { ScoredSkill } from "@/lib/types";
 import { CATEGORIES } from "@/lib/types";
 
 function catColor(cat: string): string {
   return CATEGORIES.find((c) => c.id === cat)?.color ?? "#94a3b8";
 }
+
+const SOURCE_LABEL: Record<string, string> = {
+  curated: "CURATED",
+  github: "GITHUB",
+  npm: "NPM",
+  mcp: "MCP",
+  hn: "HN",
+};
 
 export default function SkillCard({ skill }: { skill: ScoredSkill }) {
   const color = catColor(skill.category);
@@ -15,11 +23,18 @@ export default function SkillCard({ skill }: { skill: ScoredSkill }) {
       className="glass group flex flex-col rounded-2xl p-5 transition-all hover:-translate-y-1 hover:border-neon/40 hover:shadow-[0_8px_40px_rgb(34_211_238/0.12)]"
     >
       <div className="flex items-center justify-between gap-2">
-        <span
-          className="rounded-full px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider"
-          style={{ backgroundColor: `${color}22`, color }}
-        >
-          {skill.category}
+        <span className="flex items-center gap-1.5">
+          <span
+            className="rounded-full px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider"
+            style={{ backgroundColor: `${color}22`, color }}
+          >
+            {skill.category}
+          </span>
+          {skill.source !== "curated" && (
+            <span className="rounded-full border border-line px-2 py-1 font-mono text-[10px] text-mist">
+              {SOURCE_LABEL[skill.source] ?? skill.source}
+            </span>
+          )}
         </span>
         <span className="flex items-center gap-2">
           <span className="font-display text-sm font-bold text-gold">Grade {skill.grade}</span>
@@ -47,11 +62,16 @@ export default function SkillCard({ skill }: { skill: ScoredSkill }) {
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-20 overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-neon to-grape"
+              className="h-full rounded-full bg-gradient-to-r from-lime to-ember"
               style={{ width: `${skill.score}%` }}
             />
           </div>
           <span className="font-mono text-xs text-mist">{skill.score}/100</span>
+          {(skill.stars ?? 0) > 0 && (
+            <span className="flex items-center gap-1 font-mono text-[11px] text-gold">
+              <Star className="size-3" /> {(skill.stars ?? 0).toLocaleString()}
+            </span>
+          )}
         </div>
         <span className="flex items-center gap-1 text-xs text-mist transition-colors group-hover:text-neon">
           Open <ArrowRight className="size-3.5" />

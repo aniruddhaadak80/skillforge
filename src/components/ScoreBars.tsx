@@ -1,10 +1,10 @@
 import type { ScoreFactor } from "@/lib/types";
 
 const BAR: Record<string, string> = {
-  Documentation: "from-neon to-grape",
-  "Capability breadth": "from-grape to-coral",
+  Documentation: "from-neon to-lime",
+  "Capability breadth": "from-ember to-gold",
   "Agent compatibility": "from-mint to-neon",
-  "License openness": "from-gold to-mint",
+  "License openness": "from-gold to-lime",
   "Community signal": "from-neon to-mint",
   "Safety posture": "from-mint to-gold",
 };
@@ -24,7 +24,7 @@ export default function ScoreBars({ factors }: { factors: ScoreFactor[] }) {
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/10">
               <div
-                className={`h-full rounded-full bg-gradient-to-r ${BAR[f.name] ?? "from-neon to-grape"}`}
+                className={`h-full rounded-full bg-gradient-to-r ${BAR[f.name] ?? "from-ember to-crimson"}`}
                 style={{ width: `${pct}%` }}
               />
             </div>

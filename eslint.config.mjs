@@ -9,9 +9,16 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next.bak/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Harvester workspace: scratch checks, logs, and interim dumps stay local-only.
+    "scripts/test-*.cjs",
+    "scripts/check-*.cjs",
+    "scripts/harvest.*.json",
+    "scripts/harvest.*.log",
+    "src/lib/harvested.partial.json",
   ]),
 ]);
 

@@ -8,31 +8,35 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-22d3ee?style=for-the-badge)](LICENSE)
 [![Next.js](https://img.shields.io/badge/next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![MCP Ready](https://img.shields.io/badge/MCP-tools%2Flist-34d399?style=for-the-badge)](https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp)
-[![Feeds](https://img.shields.io/badge/feeds-github%20%2B%20HN-fbbf24?style=for-the-badge)](https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills)
+[![Feeds](https://img.shields.io/badge/feeds-github%20%2B%20npm%20%2B%20mcp%20%2B%20HN-fbbf24?style=for-the-badge)](https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills)
+[![Skills](https://img.shields.io/badge/skills-10000%2B-e11d48?style=for-the-badge)](https://skillforge-aniruddha-adaks-projects.vercel.app/explore)
 
 [Live App](https://skillforge-aniruddha-adaks-projects.vercel.app) · [API](https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills) · [MCP](https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp) · [Issues](https://github.com/aniruddhaadak80/skillforge/issues)
 
 </div>
 
-> **The pick:** reusable agent skills are where agentic AI is bottlenecking — every OpenClaw / Claude Code / Cursor user rewrites the same prompts, while MCP made agents tool-hungry and SKILL.md made knowledge portable. SkillForge is the free, keyless, offline-first registry that scores, seals, and serves skills to humans *and* agents. The 10-second wow: type `pdf`, watch a safety-scored skill card appear with its seal, copy one curl line — or let your agent do it over MCP.
+> **The pick:** reusable agent skills are where agentic AI is bottlenecking — every OpenClaw / Claude Code / Cursor user rewrites the same prompts, while MCP made agents tool-hungry and SKILL.md made knowledge portable. SkillForge is the free, keyless, offline-first registry that scores, seals, and serves skills to humans *and* agents — **10,000+ real indexed skills** harvested from GitHub, npm, and official MCP servers, plus 24 hand-curated starters. The 10-second wow: type `pdf`, watch a safety-scored skill card appear with its seal, copy one curl line — or let your agent do it over MCP.
 
 ---
 
 ## ✨ Features
 
-- 🔍 **Advanced search** — full-text relevance + category, platform, safety-floor, and ranking filters
+- 🔍 **Advanced search** — full-text relevance with `-exclusions`, category chips with live counts, source/platform/safety/stars/license filters, 4 rankings, paginated over 10,000+ records
 - 🧮 **SkillScore engine** — deterministic, keyless, explainable: 6 itemized factors, S/A/B/C grades, separate 0–100 safety score
 - 🤖 **Agent-native MCP** — JSON-RPC `initialize` / `tools/list` / `tools/call` with 5 tools + live in-page console
-- 🔗 **Hash-chained seals** — `SHA-384(prevSeal ‖ canonicalJson)` on every record, replay-verifiable
+- 🔗 **Hash-chained seals** — `SHA-384(prevSeal ‖ canonicalJson)` on every record, full 10k-chain verifies in ~0.5s
 - 📦 **Bundle composer** — compatibility checks, combined score, install script, MCP bundle export
 - 📄 **One-command install** — raw `SKILL.md` per skill for OpenClaw, Claude Code, Cursor, any MCP agent
-- 📡 **Live feeds, sealed fallback** — GitHub + Hacker News hourly; 24 curated skills keep everything alive offline
+- 📡 **Live feeds, sealed fallback** — GitHub + npm + MCP servers + Hacker News; 10,000-record sealed offline catalog (incl. 24 hand-curated) keeps everything alive offline
+- 🎨 **Ember-and-crimson design system** — aurora mesh hero, interactive skill network with starfield, scroll reveals, animated counters
 - 🗺️ **Learn the ladder** — docs + safety briefing from prompts to AGI, recursive self-improvement, and ASI
 - 🕸️ **Interactive skill network** — canvas hero visual (deliberately *not* a globe: the network *is* the domain)
 
 ---
 
 ## 🏗️ System architecture
+
+> 🎨 Chart color standard (all flowcharts): cyan `#22d3ee` = live/data, ember `#f97316` = AI/engine, emerald `#34d399` = agents/verified, amber `#fbbf24` = caution/external, crimson `#e11d48` = risk/alerts, slate `#94a3b8` = infra — dark text on bright fills, alternating `LR`/`TB`.
 
 ```mermaid
 flowchart LR
@@ -42,8 +46,8 @@ flowchart LR
     MCP --> ENG[SkillScore engine]
     REST --> ENG
     ENG --> SEAL[SHA-384 seal chain]
-    SEAL --> CAT[Sealed catalog]
-    FEED[GitHub + HN feeds] --> CAT
+    SEAL --> CAT[10k sealed catalog]
+    FEED[Harvest + live feeds] --> CAT
     classDef live fill:#22d3ee,color:#04060c;
     classDef ai fill:#a78bfa,color:#04060c;
     classDef agent fill:#34d399,color:#04060c;
@@ -58,11 +62,13 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    GH[GitHub repo search] --> NORM[Normalize to Skill type]
+    GH[GitHub repos] --> NORM[Normalize to Skill type]
+    NPM[npm packages] --> NORM
+    MCP[MCP servers] --> NORM
     HN[HN Algolia stories] --> NORM
     CUR[24 curated skills] --> NORM
     NORM --> SCORE[Score: 6 factors + safety]
-    SCORE --> CHAIN[Seal chain in id order]
+    SCORE --> CHAIN[Seal 10k chain in id order]
     CHAIN --> SERVE[Serve UI + REST + MCP]
     FAIL{Feed failed?} -.->|yes| CUR
     GH -.-> FAIL
@@ -71,7 +77,7 @@ flowchart TB
     classDef ai fill:#a78bfa,color:#04060c;
     classDef caution fill:#fbbf24,color:#04060c;
     classDef infra fill:#94a3b8,color:#04060c;
-    class GH,HN live;
+    class GH,HN,NPM,MCP live;
     class NORM,SCORE,CHAIN ai;
     class FAIL caution;
     class CUR,SERVE infra;
@@ -95,7 +101,7 @@ flowchart LR
     R --> TOT
     R --> SAFE[Safety 0-100]
     classDef ai fill:#a78bfa,color:#04060c;
-    classDef risk fill:#fb7185,color:#04060c;
+    classDef risk fill:#e11d48,color:#04060c;
     classDef ok fill:#34d399,color:#04060c;
     classDef infra fill:#94a3b8,color:#04060c;
     class IN infra;
@@ -131,7 +137,7 @@ sequenceDiagram
 flowchart LR
     G[GENESIS] --> H1[hash skill 1]
     H1 --> H2[hash skill 2]
-    H2 --> H3[hash skill n]
+    H2 --> H3[hash skill 10,000]
     H3 --> HEAD[chain head]
     V[POST /api/seals/verify] --> R[recompute + compare]
     HEAD --> R
@@ -157,7 +163,7 @@ flowchart TB
     classDef infra fill:#94a3b8,color:#04060c;
     classDef ok fill:#34d399,color:#04060c;
     classDef caution fill:#fbbf24,color:#04060c;
-    classDef risk fill:#fb7185,color:#04060c;
+    classDef risk fill:#e11d48,color:#04060c;
     class PUSH,CI,V infra;
     class ALIAS caution;
     class DONE ok;
@@ -208,7 +214,7 @@ curl -fsSL "https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills/pd
 | Endpoint | What |
 |---|---|
 | `GET /api/health` | Service status + catalog size |
-| `GET /api/skills?q=&category=&platform=&minSafety=&sort=&limit=` | Scored + sealed catalog |
+| `GET /api/skills?q=&category=&platform=&source=&minSafety=&minStars=&openLicense=&sort=&page=&perPage=` | Scored + sealed catalog, paginated, with `facets`, `total`, `pages`, chain `head` |
 | `GET /api/skills/:id` | One skill + related + chain head |
 | `GET /api/skills/:id/skill.md` | Raw SKILL.md (install target) |
 | `POST /api/score` | Score by `{id}` or inline `{skill}` |
@@ -256,10 +262,13 @@ A ready-made copy lives at [`public/mcp.json`](public/mcp.json). Tools: `search_
 src/
   app/                  # 7 routes: / explore skill/[id] compose safety docs + not-found
     api/                # health, skills, skills/[id], skill.md, score, mcp, seals/verify
-  components/           # Nav Footer Hero SkillGraph Ticker SkillCard ScoreBars
-                        # McpConsole InstallTabs SearchExplorer BundleComposer
-  lib/                  # types · fallback (24 sealed skills) · engine (score/search/compose)
-                        # seal (SHA-384 chain) · registry (feeds + merge + seal)
+  components/           # Nav Footer Hero SkillGraph Ticker SkillCard ScoreBars Reveal CountUp
+                        # CategoryBento LiveStrip PublishSteps Faq McpConsole InstallTabs
+                        # SearchExplorer BundleComposer SectionHeading
+  lib/                  # types · fallback (24 curated skills) · harvested.json (10k sealed)
+                        # engine (score/search/compose) · seal (SHA-384 chain)
+                        # registry (feeds + merge + seal + memoize)
+  scripts/              # harvest.mjs — GitHub + npm + exact SKILL.mds → sealed catalog
 ```
 
 **3D decision (one line):** no globe — a planet would be decoration for a skill registry, so the hero is a lightweight interactive 2D skill-dependency network (agent hub → categories → skills) with a static accessible label, zero `three` imports.
@@ -268,15 +277,16 @@ src/
 
 ## 🗺️ Roadmap
 
-**Now — deepen the forge** (more skills, sharper scores):
+**Now — quality at scale** (10,000 indexed; make every record earn it):
 
-- [ ] 100 curated skills across 10 categories — wow: every common agent job covered
+- [x] 10,000-record harvest across GitHub/npm/MCP/HN with sealed chain — wow: instant deep catalog
+- [ ] Exact SKILL.md backfill for the top 500 starred repos — wow: real bodies, not templates
 - [ ] Community skill PR template with auto-score CI comment — wow: contributors see their grade instantly
 - [ ] Per-platform install telemetry (opt-in, anonymous) — wow: adopters become real, not seeded
 
 ```mermaid
 flowchart LR
-    MORE[100 skills] --> AUTO[auto-score CI]
+    MORE[10k harvest] --> AUTO[auto-score CI]
     AUTO --> TEL[opt-in telemetry]
     classDef live fill:#22d3ee,color:#04060c;
     classDef ai fill:#a78bfa,color:#04060c;
@@ -315,7 +325,7 @@ flowchart LR
     FED[federation] --> HARN[test harness]
     HARN --> REP[reputation]
     classDef infra fill:#94a3b8,color:#04060c;
-    classDef risk fill:#fb7185,color:#04060c;
+    classDef risk fill:#e11d48,color:#04060c;
     classDef ok fill:#34d399,color:#04060c;
     class FED infra;
     class HARN risk;
@@ -338,4 +348,4 @@ MIT — see [LICENSE](LICENSE). Free for humans and agents alike.
 
 ## 🙏 Attribution
 
-Live signals: [GitHub REST Search API](https://docs.github.com/en/rest) and [Hacker News Algolia API](https://hn.algolia.com/api) (both keyless). Skill format compatible with the `SKILL.md` convention popularized by Anthropic Agent Skills. Built with Next.js, Tailwind, Framer Motion, Lucide.
+Live signals: [GitHub REST Search API](https://docs.github.com/en/rest), [npm registry search](https://github.com/npm/registry), [modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers), [anthropics/skills](https://github.com/anthropics/skills) (exact SKILL.md bodies), and [Hacker News Algolia API](https://hn.algolia.com/api) (all keyless). Skill format compatible with the `SKILL.md` convention popularized by Anthropic Agent Skills. Built with Next.js, Tailwind, Framer Motion, Lucide.

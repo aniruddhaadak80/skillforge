@@ -10,7 +10,7 @@ export type SkillCategory =
   | "media"
   | "ops";
 
-export type SkillSource = "curated" | "github" | "hn";
+export type SkillSource = "curated" | "github" | "hn" | "npm" | "mcp";
 
 export interface Skill {
   id: string;
@@ -75,15 +75,26 @@ export interface SearchFilters {
   platform: AgentPlatform | "all";
   minSafety: number;
   sort: "score" | "safety" | "adopters" | "name";
+  source: SkillSource | "all";
+  openLicense: boolean;
+  minStars: number;
 }
+
+export const SOURCES: { id: SkillSource; label: string }[] = [
+  { id: "curated", label: "Curated" },
+  { id: "github", label: "GitHub" },
+  { id: "npm", label: "npm" },
+  { id: "mcp", label: "MCP servers" },
+  { id: "hn", label: "Hacker News" },
+];
 
 export const CATEGORIES: { id: SkillCategory; label: string; color: string }[] = [
   { id: "research", label: "Research", color: "#22d3ee" },
-  { id: "code", label: "Code", color: "#a78bfa" },
+  { id: "code", label: "Code", color: "#a3e635" },
   { id: "data", label: "Data", color: "#34d399" },
   { id: "docs", label: "Docs", color: "#fbbf24" },
-  { id: "media", label: "Media", color: "#fb7185" },
-  { id: "ops", label: "Ops", color: "#94a3b8" },
+  { id: "media", label: "Media", color: "#e11d48" },
+  { id: "ops", label: "Ops", color: "#c98a2d" },
 ];
 
 export const PLATFORMS: { id: AgentPlatform; label: string }[] = [

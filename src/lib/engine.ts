@@ -22,6 +22,10 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));
 }
 
+export function isOpenLicense(license: string): boolean {
+  return /mit|apache|bsd|isc|cc0|unlicense/i.test(license);
+}
+
 function hasSection(md: string, token: string): boolean {
   return md.toLowerCase().includes(token);
 }
@@ -69,7 +73,7 @@ export function scoreSkill(skill: Skill): SkillScore {
   });
 
   // 4. License openness (0–10)
-  const openLic = /mit|apache|bsd|isc|cc0|unlicense/i.test(skill.license);
+  const openLic = isOpenLicense(skill.license);
   factors.push({
     name: "License openness",
     points: openLic ? 10 : 4,
@@ -132,21 +136,54 @@ export function relevanceOf(skill: Skill, tokens: string[]): number {
   return rel;
 }
 
-export function searchSkills(skills: Skill[], filters: SearchFilters): Skill[] {
-  const tokens = filters.query
-    .toLowerCase()
+export interface PrecomputedScore {
+  score: number;
+  safety: number;
+}
+
+export function searchSkills(
+  skills: Skill[],
+  filters: SearchFilters,
+  precomputed?: Map<string, PrecomputedScore>,
+): Skill[] {
+  // Support exclusions: `-term` drops anything matching it (parsed pre-split,
+  // since the tokenizer treats `-` as a separator).
+  const negatives = [...filters.query.toLowerCase().matchAll(/(?:^|\s)-([a-z0-9+#]{2,})/g)].map(
+    (m) => m[1],
+  );
+  const cleaned = filters.query.toLowerCase().replace(/(?:^|\s)-[a-z0-9+#]{2,}/g, " ");
+  const positives = cleaned
     .split(/[^a-z0-9+#]+/)
     .filter((t) => t.length > 1);
   const scored = skills
-    .map((s) => ({ skill: s, rel: relevanceOf(s, tokens), ...scoreSkill(s) }))
-    .filter(({ rel }) => rel > 0)
+    .map((s) => {
+      const pre = precomputed?.get(s.id);
+      const sc = pre ?? scoreSkill(s);
+      return { skill: s, rel: relevanceOf(s, positives), score: sc.score, safety: sc.safety };
+    })
+    .filter(({ skill, rel }) => {
+      if (rel <= 0) return false;
+      for (const n of negatives) {
+        if (relevanceOf(skill, [n]) > 0) return false;
+      }
+      return true;
+    })
     .filter(({ skill }) =>
       filters.category === "all" ? true : skill.category === filters.category,
     )
     .filter(({ skill }) =>
       filters.platform === "all" ? true : skill.worksWith.includes(filters.platform),
     )
-    .filter(({ safety }) => safety >= filters.minSafety);
+    .filter(({ safety }) => safety >= filters.minSafety)
+    .filter(({ skill }) =>
+      filters.source === "all" ? true : skill.source === filters.source,
+    )
+    .filter(({ skill }) =>
+      filters.openLicense ? isOpenLicense(skill.license) : true,
+    )
+    .filter(
+      ({ skill }) => (skill.stars ?? skill.adopters) >= (filters.minStars || 0),
+    );
 
   const by = {
     score: (a: { score: number }, b: { score: number }) => b.score - a.score,
@@ -161,7 +198,7 @@ export function searchSkills(skills: Skill[], filters: SearchFilters): Skill[] {
 
   return scored
     .sort((a, b) => {
-      if (tokens.length > 0 && b.rel !== a.rel) return b.rel - a.rel;
+      if (positives.length > 0 && b.rel !== a.rel) return b.rel - a.rel;
       return by(a, b);
     })
     .map((r) => r.skill);

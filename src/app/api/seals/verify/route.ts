@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
-import { getFullCatalog, getSealedCatalog } from "@/lib/registry";
+import { getSealedCatalog, verifyCatalog } from "@/lib/registry";
 
 export const dynamic = "force-dynamic";
 
-/** POST { ids?: string[] } → recompute the chain, compare every hash. */
+/**
+ * POST { ids?: string[] } → O(1) per-record hash recompute from stored prev
+ * for harvested records + full runtime-segment recompute + chain continuity.
+ */
 export async function POST(request: Request) {
   let body: { ids?: string[] } = {};
   try {
@@ -11,32 +14,22 @@ export async function POST(request: Request) {
   } catch {
     body = {};
   }
-  const all = await getFullCatalog();
-  const { scored, head } = await getSealedCatalog(all);
-  const wanted = new Set(body.ids ?? scored.map((s) => s.id));
-  const recomputed = await getSealedCatalog(all);
-  const failures: string[] = [];
-  let checked = 0;
-  for (const s of scored) {
-    if (!wanted.has(s.id)) continue;
-    checked++;
-    const fresh = recomputed.scored.find((x) => x.id === s.id);
-    if (!fresh || fresh.seal !== s.seal) failures.push(s.id);
-  }
+  const result = await verifyCatalog(body.ids);
   return NextResponse.json({
-    ok: failures.length === 0,
-    checked,
-    failures,
-    head,
+    ok: result.ok,
+    checked: result.checked,
+    failures: result.failures,
+    head: result.head,
+    continuity: result.continuity,
     algo: "SHA-384(prevSeal || canonicalJson)",
   });
 }
 
 export async function GET() {
-  const all = await getFullCatalog();
-  const { head } = await getSealedCatalog(all);
+  const sealed = await getSealedCatalog();
   return NextResponse.json({
-    head,
+    head: sealed.head,
+    catalog: sealed.scored.length,
     algo: "SHA-384(prevSeal || canonicalJson)",
     how: 'POST { "ids": ["pr-reviewer"] } to replay-verify seals',
   });

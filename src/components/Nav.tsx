@@ -19,7 +19,7 @@ export default function Nav() {
     <header className="sticky top-0 z-50 border-b border-line/70 bg-void/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-neon to-grape shadow-[0_0_24px_rgb(34_211_238/0.4)]">
+          <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-lime to-ember shadow-[0_0_24px_rgb(34_211_238/0.4)]">
             <Anvil className="size-5 text-void" strokeWidth={2.5} />
           </span>
           <span className="font-display text-lg font-bold tracking-tight">
@@ -52,7 +52,7 @@ export default function Nav() {
           </a>
           <Link
             href="/explore"
-            className="rounded-lg bg-gradient-to-r from-neon to-grape px-4 py-2 text-sm font-semibold text-void transition-transform hover:scale-[1.03]"
+            className="rounded-lg bg-gradient-to-r from-lime to-ember px-4 py-2 text-sm font-semibold text-void transition-transform hover:scale-[1.03]"
           >
             Find a skill
           </Link>

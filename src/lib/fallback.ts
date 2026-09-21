@@ -559,7 +559,7 @@ export const FALLBACK_SKILLS: Skill[] = [
       [
         "Identify nodes, edges, and decision points.",
         "Keep ≤14 nodes; split larger systems.",
-        "Apply color semantics: data cyan, AI violet, verified emerald.",
+        "Apply color semantics: data cyan, AI ember, verified emerald.",
         "Alternate LR/TB direction per chart.",
       ],
       ["Every process gets a chart; no text-only flows.", "Label every edge that branches."],

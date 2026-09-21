@@ -13,7 +13,7 @@ const LADDER = [
   },
   {
     name: "Agentic AI — today",
-    color: "#a78bfa",
+    color: "#f97316",
     body: "Agents with tools, memory and goals: OpenClaw, Claude Code, Cursor. Useful and already capable of real damage with a bad skill — leaked secrets, wiped folders, spam sent in your name.",
   },
   {
@@ -23,7 +23,7 @@ const LADDER = [
   },
   {
     name: "Recursive self-improvement → ASI",
-    color: "#fb7185",
+    color: "#e11d48",
     body: "An agent that rewrites its own skills compounds every flaw. Alignment is not a feature to add later — it is the registry layer, the score, the seal, the guardrail.",
   },
 ];
@@ -90,15 +90,15 @@ export default function SafetyPage() {
         </div>
       </div>
 
-      <div className="glass mt-6 rounded-2xl border-coral/25 p-6 sm:p-8">
+      <div className="glass mt-6 rounded-2xl border-crimson/25 p-6 sm:p-8">
         <div className="flex items-center gap-2">
-          <ShieldAlert className="size-5 text-coral" />
+          <ShieldAlert className="size-5 text-crimson" />
           <h2 className="font-display text-xl font-bold">Install checklist — use it every time</h2>
         </div>
         <ol className="mt-4 space-y-2.5">
           {CHECKS.map((c, i) => (
             <li key={c} className="flex gap-3 text-sm leading-relaxed text-mist">
-              <span className="font-mono text-coral">{String(i + 1).padStart(2, "0")}</span> {c}
+              <span className="font-mono text-crimson">{String(i + 1).padStart(2, "0")}</span> {c}
             </li>
           ))}
         </ol>

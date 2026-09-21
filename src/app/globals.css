@@ -6,10 +6,12 @@
   --color-panel2: #0d1428;
   --color-line: #1b2542;
   --color-neon: #22d3ee;
-  --color-grape: #a78bfa;
+  --color-ember: #f97316;
+  --color-crimson: #e11d48;
+  --color-bronze: #c98a2d;
+  --color-lime: #a3e635;
   --color-mint: #34d399;
   --color-gold: #fbbf24;
-  --color-coral: #fb7185;
   --color-mist: #94a3b8;
   --color-snow: #eef2ff;
 
@@ -69,12 +71,12 @@ body {
   background: #04060c;
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #22d3ee, #a78bfa);
+  background: linear-gradient(180deg, #34d399, #f97316);
   border-radius: 8px;
   border: 2px solid #04060c;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #34d399, #22d3ee);
+  background: linear-gradient(180deg, #fbbf24, #e11d48);
 }
 
 /* Glass panel */
@@ -98,13 +100,16 @@ body {
 .text-glow-cyan {
   text-shadow: 0 0 24px rgb(34 211 238 / 0.55);
 }
-.text-glow-violet {
-  text-shadow: 0 0 24px rgb(167 139 250 / 0.55);
+.text-glow-ember {
+  text-shadow: 0 0 24px rgb(249 115 22 / 0.55);
+}
+.text-glow-crimson {
+  text-shadow: 0 0 24px rgb(225 29 72 / 0.55);
 }
 
 /* Gradient text */
 .text-aurora {
-  background: linear-gradient(92deg, #22d3ee 0%, #a78bfa 48%, #34d399 100%);
+  background: linear-gradient(92deg, #34d399 0%, #fbbf24 45%, #e11d48 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -126,5 +131,5 @@ body {
 }
 
 ::selection {
-  background: rgb(34 211 238 / 0.35);
+  background: rgb(249 115 22 / 0.35);
 }

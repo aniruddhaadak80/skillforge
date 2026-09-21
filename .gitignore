@@ -15,7 +15,15 @@
 
 # next.js
 /.next/
+/.next.bak/
 /out/
+
+# skillforge harvester workspace (local-only: scratch checks, logs, interims)
+scripts/test-*.cjs
+scripts/check-*.cjs
+scripts/harvest.*.json
+scripts/harvest.*.log
+src/lib/harvested.partial.json
 
 # production
 /build

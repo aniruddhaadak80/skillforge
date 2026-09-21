@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
-import { getCatalog } from "@/lib/registry";
+import { getOfflineCatalog, harvestMeta } from "@/lib/registry";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const catalog = getCatalog();
+  const catalog = getOfflineCatalog();
+  const meta = harvestMeta();
   return NextResponse.json({
     ok: true,
     service: "skillforge",
-    version: "1.0.0",
+    version: "2.0.0",
     time: new Date().toISOString(),
     catalog: catalog.length,
-    feeds: ["github", "hn"],
+    harvested: { total: meta.total, counts: meta.counts, generatedAt: meta.generatedAt },
+    feeds: ["github", "npm", "mcp", "hn"],
     mcp: "/api/mcp",
   });
 }

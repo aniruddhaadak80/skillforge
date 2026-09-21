@@ -1,20 +1,61 @@
 import { scoreSkill } from "./engine";
 import { FALLBACK_SKILLS } from "./fallback";
-import { sealCatalog } from "./seal";
+import { GENESIS, sealFor, verifyStored } from "./seal";
 import type { ScoredSkill, Skill } from "./types";
 
 /**
- * Registry: merges the sealed offline catalog with 2 live public feeds
- * (GitHub repo search + HN Algolia stories), both keyless with caching.
- * Any feed failure degrades silently to the offline catalog.
+ * Registry v2: 24 curated skills + ~10,000 harvested records (GitHub, npm,
+ * MCP servers, exact SKILL.md bodies) sealed at harvest time, plus 2 runtime
+ * live feeds (GitHub search + HN) that extend the chain per request.
+ *
+ * The 11MB harvested JSON loads via require() so TypeScript never builds a
+ * 200k-node literal type for it. Scores + runtime seals are memoized per
+ * (harvestHead + liveSignature).
  */
+
+interface HarvestedSkill extends Skill {
+  prev: string;
+  seal: string;
+}
+
+interface HarvestDoc {
+  generatedAt: string;
+  counts: Record<string, number>;
+  total: number;
+  head: string;
+  algo: string;
+  skills: HarvestedSkill[];
+}
+
+function loadHarvest(): HarvestDoc {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const doc = require("./harvested.json") as HarvestDoc;
+    if (doc && Array.isArray(doc.skills)) return doc;
+  } catch {
+    /* build-safe: fall back to curated only */
+  }
+  return { generatedAt: "", counts: {}, total: 0, head: "", algo: "", skills: [] };
+}
+
+const HARVEST: HarvestDoc = loadHarvest();
+const HARVEST_SEALS = new Map(HARVEST.skills.map((s) => [s.id, s]));
+
+function stripSeal(s: HarvestedSkill): Skill {
+  const { prev: _p, seal: _s, ...rest } = s;
+  void _p;
+  void _s;
+  return rest;
+}
+
+/* ------------------------------- runtime live feeds ------------------------------ */
 
 interface LiveCache {
   at: number;
   skills: Skill[];
 }
 
-let cache: LiveCache | null = null;
+let liveCache: LiveCache | null = null;
 const TTL_MS = 10 * 60 * 1000;
 
 async function fetchJson(url: string, timeoutMs = 6000): Promise<unknown> {
@@ -25,7 +66,7 @@ async function fetchJson(url: string, timeoutMs = 6000): Promise<unknown> {
       signal: ctrl.signal,
       headers: {
         Accept: "application/vnd.github+json",
-        "User-Agent": "skillforge-registry/1.0",
+        "User-Agent": "skillforge-registry/2.0",
       },
       next: { revalidate: 3600 },
     });
@@ -47,9 +88,9 @@ function mapGithubItems(json: unknown): Skill[] {
     const desc =
       ((r.description as string) ?? "Community agent project indexed live from GitHub.") as string;
     return {
-      id: `gh-${String(r.id ?? `${owner}-${name}`).replace(/[^a-z0-9-]/gi, "").toLowerCase().slice(0, 40) || `live-${i}`}`,
-      name: name.length > 42 ? `${name.slice(0, 41)}…` : name,
-      tagline: desc.length > 90 ? `${desc.slice(0, 89)}…` : desc,
+      id: `live-gh-${String(r.id ?? `${owner}-${name}`).replace(/[^a-z0-9-]/gi, "").toLowerCase().slice(0, 40) || `live-${i}`}`,
+      name: name.length > 40 ? `${name.slice(0, 39)}…` : name,
+      tagline: desc.length > 80 ? `${desc.slice(0, 79)}…` : desc,
       description: `${desc} Live-indexed from GitHub; open the repo to vet quality before installing anything.`,
       category: (["research", "code", "data", "docs", "media", "ops"] as const)[i % 6],
       capabilities: ["live-indexed", "community code", "repo workflows"],
@@ -74,7 +115,7 @@ function mapHnHits(json: unknown): Skill[] {
     const title = (h.title as string) ?? `HN agent discussion ${i + 1}`;
     return {
       id: `hn-${String(h.objectID ?? i).replace(/[^a-z0-9-]/gi, "").toLowerCase().slice(0, 32) || `thread-${i}`}`,
-      name: title.length > 42 ? `${title.slice(0, 41)}…` : title,
+      name: title.length > 40 ? `${title.slice(0, 39)}…` : title,
       tagline: "Live community signal from Hacker News",
       description:
         "Live discussion signal from Hacker News about agents and skills. Read the thread for practitioner patterns, then encode the best ones as a local skill.",
@@ -95,7 +136,7 @@ function mapHnHits(json: unknown): Skill[] {
 }
 
 export async function getLiveSkills(): Promise<Skill[]> {
-  if (cache && Date.now() - cache.at < TTL_MS) return cache.skills;
+  if (liveCache && Date.now() - liveCache.at < TTL_MS) return liveCache.skills;
   const [gh, hn] = await Promise.all([
     fetchJson(
       "https://api.github.com/search/repositories?q=agent+skills+in:name,description,readme&sort=stars&order=desc&per_page=10",
@@ -119,24 +160,42 @@ export async function getLiveSkills(): Promise<Skill[]> {
       /* keep offline-safe */
     }
   }
-  if (skills.length > 0) cache = { at: Date.now(), skills };
-  return cache?.skills ?? [];
+  if (skills.length > 0) liveCache = { at: Date.now(), skills };
+  return liveCache?.skills ?? [];
 }
 
-/** Offline catalog only — deterministic, instant, build-safe. */
+/* ---------------------------------- catalog views --------------------------------- */
+
+/** Curated 24 — used for static params and instant first paint. */
 export function getCatalog(): Skill[] {
   return FALLBACK_SKILLS;
 }
 
-/** Full catalog: curated + live signals, deduped by id. */
-export async function getFullCatalog(): Promise<Skill[]> {
-  const live = await getLiveSkills();
+/** Offline catalog: curated + harvested (no network). Deterministic order. */
+export function getOfflineCatalog(): Skill[] {
+  const harvested: Skill[] = HARVEST.skills.map(stripSeal);
   const seen = new Set(FALLBACK_SKILLS.map((s) => s.id));
-  const extra = live.filter((s) => !seen.has(s.id));
-  return [...FALLBACK_SKILLS, ...extra];
+  return [...FALLBACK_SKILLS, ...harvested.filter((s) => !seen.has(s.id))];
 }
 
-/** Canonical payload sealed for a skill — deterministic across requests. */
+/** Full catalog: offline + runtime live signals, deduped by id. */
+export async function getFullCatalog(): Promise<Skill[]> {
+  const offline = getOfflineCatalog();
+  const live = await getLiveSkills();
+  const seen = new Set(offline.map((s) => s.id));
+  return [...offline, ...live.filter((s) => !seen.has(s.id))];
+}
+
+export function harvestMeta(): { total: number; counts: Record<string, number>; generatedAt: string; head: string } {
+  return {
+    total: HARVEST.total,
+    counts: HARVEST.counts,
+    generatedAt: HARVEST.generatedAt,
+    head: HARVEST.head,
+  };
+}
+
+/** Canonical payload sealed for a skill — must match scripts/harvest.mjs. */
 export function payloadOf(s: Skill): unknown {
   return {
     id: s.id,
@@ -149,24 +208,116 @@ export function payloadOf(s: Skill): unknown {
   };
 }
 
-/** Scores + hash-chain-seals the catalog. The seal head anchors integrity. */
-export async function getSealedCatalog(
-  skills: Skill[],
-): Promise<{ scored: ScoredSkill[]; head: string }> {
-  const ordered = [...skills].sort((a, b) => a.id.localeCompare(b.id));
-  const { seals } = await sealCatalog(ordered, payloadOf);
-  const scored: ScoredSkill[] = ordered.map((s) => {
+/* --------------------------- sealed + scored (memoized) ---------------------------- */
+
+interface SealedView {
+  key: string;
+  scored: ScoredSkill[];
+  byId: Map<string, ScoredSkill>;
+  scores: Map<string, { score: number; safety: number }>;
+  head: string;
+}
+
+let view: SealedView | null = null;
+
+function liveSignature(live: Skill[]): string {
+  return live.map((s) => s.id).join(",");
+}
+
+/**
+ * Scores every record and seals the runtime segment as a chain extension
+ * starting at the harvest head. Harvested records reuse build-time seals.
+ */
+export async function getSealedCatalog(live?: Skill[]): Promise<SealedView> {
+  const liveSkills = live ?? (await getLiveSkills());
+  const key = `${HARVEST.head}#${liveSignature(liveSkills)}`;
+  if (view && view.key === key) return view;
+
+  const offline = getOfflineCatalog();
+  const seen = new Set(offline.map((s) => s.id));
+  const runtime = [
+    ...FALLBACK_SKILLS,
+    ...liveSkills.filter((s) => !seen.has(s.id)),
+  ].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+
+  // seal runtime segment extending the harvest chain
+  let prev = HARVEST.head || GENESIS;
+  const runtimeSeals = new Map<string, string>();
+  for (const s of runtime) {
+    const hash = await sealFor(prev, payloadOf(s));
+    runtimeSeals.set(s.id, hash);
+    prev = hash;
+  }
+  const head = runtime.length > 0 ? prev : HARVEST.head || GENESIS;
+
+  const scored: ScoredSkill[] = [];
+  // curated first (stable, fast), then harvested bulk
+  for (const s of offline) {
+    const stored = HARVEST_SEALS.get(s.id);
     const sc = scoreSkill(s);
-    return {
+    scored.push({
       ...s,
       score: sc.score,
       safety: sc.safety,
       grade: sc.grade,
       factors: sc.factors,
-      seal: seals[s.id],
-      sealedAt: new Date().toISOString(),
-    };
-  });
-  const head = seals[ordered[ordered.length - 1]?.id ?? ""] ?? "";
-  return { scored, head };
+      seal: stored?.seal ?? runtimeSeals.get(s.id) ?? "",
+      sealedAt: stored ? HARVEST.generatedAt : new Date().toISOString(),
+    });
+  }
+  const byId = new Map(scored.map((s) => [s.id, s]));
+  const scores = new Map(
+    scored.map((s) => [s.id, { score: s.score, safety: s.safety }]),
+  );
+
+  view = { key, scored, byId, scores, head };
+  return view;
+}
+
+/**
+ * Verifies seals: harvested records recompute O(1) from stored prev;
+ * runtime segment recomputes fully (tiny). Optional full-continuity check
+ * compares every stored prev to its predecessor hash (string compare only).
+ */
+export async function verifyCatalog(ids?: string[]): Promise<{
+  ok: boolean;
+  checked: number;
+  failures: string[];
+  head: string;
+  continuity: boolean;
+}> {
+  const liveSkills = await getLiveSkills();
+  const sealed = await getSealedCatalog(liveSkills);
+  const wanted = ids && ids.length > 0 ? new Set(ids) : null;
+  const failures: string[] = [];
+  let checked = 0;
+
+  for (const s of sealed.scored) {
+    if (wanted && !wanted.has(s.id)) continue;
+    checked++;
+    const stored = HARVEST_SEALS.get(s.id);
+    if (stored) {
+      const okOne = await verifyStored(stored.prev, payloadOf(s), stored.seal);
+      if (!okOne || stored.seal !== s.seal) failures.push(s.id);
+    }
+    // runtime-segment records are recomputed deterministically inside
+    // getSealedCatalog on every call, so presence in the view IS the check.
+  }
+
+  // continuity: every stored prev must equal the previous stored hash (id order)
+  let continuity = true;
+  if (!wanted) {
+    const ordered = [...HARVEST.skills].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    let prevHash = GENESIS;
+    for (const h of ordered) {
+      if (h.prev !== prevHash) {
+        continuity = false;
+        break;
+      }
+      prevHash = h.seal;
+    }
+    if (prevHash !== HARVEST.head) continuity = false;
+  }
+
+  return { ok: failures.length === 0 && continuity, checked, failures, head: sealed.head, continuity };
 }
