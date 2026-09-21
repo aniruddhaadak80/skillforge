@@ -30,20 +30,20 @@ When the user asks for <thing> or the agent sees <signal>.
 const MCP_JSON = `{
   "mcpServers": {
     "skillforge": {
-      "url": "https://skillforge.vercel.app/api/mcp",
+      "url": "https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp",
       "transport": "http-json-rpc"
     }
   }
 }`;
 
-const CURL_SEARCH = `curl -s "https://skillforge.vercel.app/api/skills?q=pdf&sort=score&limit=3"`;
+const CURL_SEARCH = `curl -s "https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills?q=pdf&sort=score&limit=3"`;
 
-const CURL_MCP = `curl -s https://skillforge.vercel.app/api/mcp \\
+const CURL_MCP = `curl -s https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp \\
   -H "Content-Type: application/json" \\
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call",
        "params":{"name":"search_skills","arguments":{"query":"pdf","limit":3}}}'`;
 
-const CURL_VERIFY = `curl -s https://skillforge.vercel.app/api/seals/verify \\
+const CURL_VERIFY = `curl -s https://skillforge-aniruddha-adaks-projects.vercel.app/api/seals/verify \\
   -H "Content-Type: application/json" \\
   -d '{"ids":["pr-reviewer","pdf-miner"]}'`;
 

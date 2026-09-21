@@ -214,7 +214,7 @@ export function composeBundle(skills: Skill[], ids: string[]): BundleResult {
     ...picked.map(
       (s) =>
         `# ${s.name} (${s.version}) — ${s.tagline}\n` +
-        `curl -fsSL "https://skillforge.vercel.app/api/skills/${s.id}/skill.md" -o skills/${s.id}/SKILL.md`,
+        `curl -fsSL "https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills/${s.id}/skill.md" -o skills/${s.id}/SKILL.md`,
     ),
   ].join("\n");
 
@@ -239,5 +239,5 @@ export function composeBundle(skills: Skill[], ids: string[]): BundleResult {
 }
 
 export function installCommand(skill: Skill): string {
-  return `curl -fsSL "https://skillforge.vercel.app/api/skills/${skill.id}/skill.md" -o skills/${skill.id}/SKILL.md`;
+  return `curl -fsSL "https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills/${skill.id}/skill.md" -o skills/${skill.id}/SKILL.md`;
 }

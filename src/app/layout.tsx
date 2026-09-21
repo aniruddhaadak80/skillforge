@@ -11,7 +11,7 @@ const display = Space_Grotesk({
 const sans = Inter({ variable: "--font-sans", subsets: ["latin"] });
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
-const SITE_URL = "https://skillforge.vercel.app";
+const SITE_URL = "https://skillforge-aniruddha-adaks-projects.vercel.app";
 
 export const metadata: Metadata = {
   title: {

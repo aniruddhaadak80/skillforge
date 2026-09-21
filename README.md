@@ -4,13 +4,13 @@
 
 **The free open registry for reusable AI agent skills — search, safety-score, compose, install.**
 
-[![Live Demo](https://img.shields.io/badge/demo-live-34d399?style=for-the-badge&logo=vercel)](https://skillforge.vercel.app)
+[![Live Demo](https://img.shields.io/badge/demo-live-34d399?style=for-the-badge&logo=vercel)](https://skillforge-aniruddha-adaks-projects.vercel.app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22d3ee?style=for-the-badge)](LICENSE)
 [![Next.js](https://img.shields.io/badge/next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![MCP Ready](https://img.shields.io/badge/MCP-tools%2Flist-34d399?style=for-the-badge)](https://skillforge.vercel.app/api/mcp)
-[![Feeds](https://img.shields.io/badge/feeds-github%20%2B%20HN-fbbf24?style=for-the-badge)](https://skillforge.vercel.app/api/skills)
+[![MCP Ready](https://img.shields.io/badge/MCP-tools%2Flist-34d399?style=for-the-badge)](https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp)
+[![Feeds](https://img.shields.io/badge/feeds-github%20%2B%20HN-fbbf24?style=for-the-badge)](https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills)
 
-[Live App](https://skillforge.vercel.app) · [API](https://skillforge.vercel.app/api/skills) · [MCP](https://skillforge.vercel.app/api/mcp) · [Issues](https://github.com/aniruddhaadak80/skillforge/issues)
+[Live App](https://skillforge-aniruddha-adaks-projects.vercel.app) · [API](https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills) · [MCP](https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp) · [Issues](https://github.com/aniruddhaadak80/skillforge/issues)
 
 </div>
 
@@ -198,7 +198,7 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000). To install a skill into any agent:
 
 ```bash
-curl -fsSL "https://skillforge.vercel.app/api/skills/pdf-miner/skill.md" -o skills/pdf-miner/SKILL.md
+curl -fsSL "https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills/pdf-miner/skill.md" -o skills/pdf-miner/SKILL.md
 ```
 
 ---
@@ -217,18 +217,18 @@ curl -fsSL "https://skillforge.vercel.app/api/skills/pdf-miner/skill.md" -o skil
 
 ```bash
 # Search
-curl -s "https://skillforge.vercel.app/api/skills?q=pdf&sort=score&limit=3"
+curl -s "https://skillforge-aniruddha-adaks-projects.vercel.app/api/skills?q=pdf&sort=score&limit=3"
 
 # Score
-curl -s https://skillforge.vercel.app/api/score -H "Content-Type: application/json" \
+curl -s https://skillforge-aniruddha-adaks-projects.vercel.app/api/score -H "Content-Type: application/json" \
   -d '{"id":"pr-reviewer"}'
 
 # Verify seals
-curl -s https://skillforge.vercel.app/api/seals/verify -H "Content-Type: application/json" \
+curl -s https://skillforge-aniruddha-adaks-projects.vercel.app/api/seals/verify -H "Content-Type: application/json" \
   -d '{"ids":["pr-reviewer","pdf-miner"]}'
 
 # MCP as an agent would call it
-curl -s https://skillforge.vercel.app/api/mcp -H "Content-Type: application/json" \
+curl -s https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call",
        "params":{"name":"search_skills","arguments":{"query":"pdf","limit":3}}}'
 ```
@@ -239,7 +239,7 @@ curl -s https://skillforge.vercel.app/api/mcp -H "Content-Type: application/json
 {
   "mcpServers": {
     "skillforge": {
-      "url": "https://skillforge.vercel.app/api/mcp",
+      "url": "https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp",
       "transport": "http-json-rpc"
     }
   }
@@ -326,7 +326,7 @@ flowchart LR
 
 ## ⚠️ Safety disclaimer
 
-Skills are executable agency: a skill can read files, call APIs, and spend your money. SkillForge scores declared risk and seals records, but **scores are heuristics, not guarantees** — always read the SKILL.md, check the safety number, install least-privilege first, and never paste secrets into a skill. See the [/safety briefing](https://skillforge.vercel.app/safety).
+Skills are executable agency: a skill can read files, call APIs, and spend your money. SkillForge scores declared risk and seals records, but **scores are heuristics, not guarantees** — always read the SKILL.md, check the safety number, install least-privilege first, and never paste secrets into a skill. See the [/safety briefing](https://skillforge-aniruddha-adaks-projects.vercel.app/safety).
 
 ## 🤝 Contributing
 

@@ -8,7 +8,7 @@ import { PLATFORMS } from "@/lib/types";
 function useOrigin(): string {
   // Lazy initializer reads the browser origin once — no effect needed.
   const [origin] = useState(() =>
-    typeof window === "undefined" ? "https://skillforge.vercel.app" : window.location.origin,
+    typeof window === "undefined" ? "https://skillforge-aniruddha-adaks-projects.vercel.app" : window.location.origin,
   );
   return origin;
 }
@@ -63,7 +63,7 @@ export default function InstallTabs({ skill }: { skill: Skill }) {
     {
       mcpServers: {
         skillforge: {
-          url: "https://skillforge.vercel.app/api/mcp",
+          url: "https://skillforge-aniruddha-adaks-projects.vercel.app/api/mcp",
           transport: "http-json-rpc",
         },
       },
