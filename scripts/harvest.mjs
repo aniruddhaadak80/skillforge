@@ -15,6 +15,13 @@
 import { execFileSync } from "node:child_process";
 import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
 import { webcrypto } from "node:crypto";
+import {
+  CAP_GITHUB,
+  CAP_TOTAL,
+  exactCeiling,
+  npmAllowance,
+  npmCeiling,
+} from "./budget.mjs";
 
 // Unbuffered progress log (stdout is block-buffered when piped).
 const LOG = new URL("./harvest.log", import.meta.url);
@@ -28,10 +35,6 @@ console.log = (...a) => {
 
 const OUT = new URL("../src/lib/harvested.json", import.meta.url);
 const PARTIAL = new URL("../src/lib/harvested.partial.json", import.meta.url);
-const CAP_TOTAL = 10000;
-const CAP_GITHUB = 6500;
-const CAP_NPM = 3200;
-
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------------- deterministic canonical JSON (mirrors src/lib/seal.ts) ---------------- */
@@ -231,7 +234,7 @@ async function harvestNpm(seen, out, queries = NPM_QUERIES.map((q) => ({ q, from
   for (const { q, from: fromStart } of queries) {
     let from = fromStart;
     for (let round = 0; round < rounds; round++) {
-      if (out.length >= CAP_GITHUB + CAP_NPM) return taken;
+      if (npmAllowance(taken) === 0 || out.length >= npmCeiling()) return taken;
       const json = await npmFetch(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(q)}&size=250&from=${from}`);
       if (!json) {
         console.log(`  npm [${q}] from ${from}: failed after retries — moving on`);
@@ -249,7 +252,7 @@ async function harvestNpm(seen, out, queries = NPM_QUERIES.map((q) => ({ q, from
         out.push(fromNpmPackage(o));
         taken++;
         if (out.length % 500 === 0) savePartial(out);
-        if (out.length >= CAP_GITHUB + CAP_NPM) return taken;
+        if (npmAllowance(taken) === 0 || out.length >= npmCeiling()) return taken;
       }
       console.log(`  npm [${q}] from ${from}: +${objs.length} (total ${out.length})`);
       from += objs.length;
@@ -360,6 +363,7 @@ async function harvestExact(seen, out) {
       for (let i = 0; i < dirs.length; i += 6) {
         const batch = await Promise.all(dirs.slice(i, i + 6).map(fetchOne));
         for (const s of batch) {
+          if (out.length >= exactCeiling()) return taken;
           if (!s) continue;
           if (seen.has(`mcp:${s.id}`)) continue;
           seen.add(`mcp:${s.id}`);
